@@ -28,26 +28,57 @@ class _MyAppState extends State<MyApp> {
     inAppWebViewGroupOptions: InAppWebViewGroupOptions(crossPlatform: InAppWebViewOptions(javaScriptEnabled: true))
   );
 
+  int _currentPage = 0;
+  final _pageController = PageController(); //current page
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("App web view"),
       ),
-      body: Center(
-        child: ElevatedButton(
-          child: Text("Busca inicial"),
-          onPressed: (){
-            widget.browser.openUrlRequest(
-              urlRequest: URLRequest(url: Uri.parse("https://www.livima.com.br/busca_inicial")),
-              options: options
-            );
-          },
-        )
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (i){
+          // define o index da página atual
+          setState(() {
+            _currentPage = i;
+          });
+        },
+        children: [
+          Container(
+            color: Colors.blue,
+            child: ElevatedButton(
+              child: Text("Busca inicial"),
+              onPressed: (){
+                widget.browser.openUrlRequest(
+                  urlRequest: URLRequest(url: Uri.parse("https://www.livima.com.br/busca_inicial")),
+                  options: options
+                );
+              }
+            ),
+          ),
+          Container(
+            color: Colors.red,
+          ),
+          Container(
+            color: Colors.greenAccent.shade100,
+          ),
+          Container(
+            color: Colors.orange,
+          ),
+        ]
       ),
       bottomNavigationBar: BottomBar(
+        selectedIndex: _currentPage,
+        onTap: (int i){
+          _pageController.jumpToPage(i);
+          setState(() {
+            _currentPage = i;
+          });
+        },
         backgroundColor: Colors.blue[50],
-        items: [
+        items: <BottomBarItem>[
           BottomBarItem(
             icon: Icon(Icons.home),
             title: Text('Home'),

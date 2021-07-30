@@ -1,35 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:bottom_bar/bottom_bar.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'dart:io';
+import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
+
+String selectedUrl = 'https://www.livima.com.br/busca_inicial';
+
+final Set<JavascriptChannel> jsChannels = [
+  JavascriptChannel(
+    name: 'Print',
+    onMessageReceived: (JavascriptMessage message){
+      print(message.message);
+    }
+  )
+].toSet();
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  if (Platform.isAndroid) {
-    await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);
-  }
-
   runApp(
     MaterialApp(home: new MyApp())
   );
 }
 
 class MyApp extends StatefulWidget {
-  final MyAppInBrowser browser = new MyAppInBrowser();
 
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  var options = InAppBrowserClassOptions(
-    crossPlatform: InAppBrowserOptions(hideUrlBar: false),
-    inAppWebViewGroupOptions: InAppWebViewGroupOptions(crossPlatform: InAppWebViewOptions(javaScriptEnabled: true))
-  );
-
   int _currentPage = 0;
   final _pageController = PageController(); //current page
+  final flutterWebviewPlugin = FlutterWebviewPlugin(); //plugin fluter web
 
   @override
   Widget build(BuildContext context) {
@@ -40,22 +40,24 @@ class _MyAppState extends State<MyApp> {
       body: PageView(
         controller: _pageController,
         onPageChanged: (i){
-          // define o index da página atual
           setState(() {
             _currentPage = i;
           });
         },
         children: [
           Container(
-            color: Colors.blue,
-            child: ElevatedButton(
-              child: Text("Busca inicial"),
-              onPressed: (){
-                widget.browser.openUrlRequest(
-                  urlRequest: URLRequest(url: Uri.parse("https://www.livima.com.br/busca_inicial")),
-                  options: options
-                );
-              }
+            padding: EdgeInsets.only(top: 90),
+            height: MediaQuery.of(context).size.height,
+            child: WebviewScaffold(
+              url: selectedUrl,
+              javascriptChannels: jsChannels,
+              mediaPlaybackRequiresUserGesture: false,
+              withZoom: true,
+              withLocalStorage: true,
+              initialChild: Container(
+                color: Colors.white,
+                child: Center(child: Text('Aguarde...'),)
+              ),
             ),
           ),
           Container(
@@ -77,7 +79,7 @@ class _MyAppState extends State<MyApp> {
             _currentPage = i;
           });
         },
-        backgroundColor: Colors.blue[50],
+        backgroundColor: Colors.transparent,
         items: <BottomBarItem>[
           BottomBarItem(
             icon: Icon(Icons.home),
@@ -107,35 +109,3 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class MyAppInBrowser extends InAppBrowser{
-  //Funções dos estados
-  @override
-  Future onBrowserCreated() async {
-    print("Browser Created!");
-  }
-
-  @override
-  Future onLoadStart(url) async {
-    print("Started $url");
-  }
-
-  @override
-  Future onLoadStop(url) async {
-    print("Stopped $url");
-  }
-
-  @override
-  void onLoadError(url, code, message) {
-    print("Can't load $url.. Error: $message");
-  }
-
-  @override
-  void onProgressChanged(progress) {
-    print("Progress: $progress");
-  }
-
-  @override
-  void onExit() {
-    print("Browser closed!");
-  }
-}
